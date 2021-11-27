@@ -85,6 +85,22 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Select all skills
+	skills := &[]models.Skill{}
+	err = app.db.Select(skills, "SELECT * FROM skill ORDER BY id")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Select all skillsets
+	skillsets := &[]models.Skillset{}
+	err = app.db.Select(skillsets, "SELECT * FROM skillset")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
 	// Select all species
 	species := &[]models.Species{}
 	err = app.db.Select(species, "SELECT * FROM species ORDER BY id")
@@ -109,23 +125,47 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get all user actions
+	userActions := &[]models.UserAction{}
+	err = app.db.Select(userActions, "SELECT * FROM user_action WHERE user_id = ?", user.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Get all user skills
+	userSkills := &[]models.UserSkill{}
+	err = app.db.Select(userSkills, "SELECT * FROM user_skill WHERE user_id = ?", user.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
 	// Return the struct
 	data := struct {
-		Actions    *[]models.Action    `json:"actions"`
-		Actionsets *[]models.Actionset `json:"actionsets"`
-		Creatures  *[]models.Creature  `json:"creatures"`
-		Series     *[]models.Series    `json:"series"`
-		Species    *[]models.Species   `json:"species"`
-		Staffs     *[]models.Staff     `json:"staffs"`
-		User       *models.User        `json:"user"`
+		Actions     *[]models.Action     `json:"actions"`
+		Actionsets  *[]models.Actionset  `json:"actionsets"`
+		Creatures   *[]models.Creature   `json:"creatures"`
+		Series      *[]models.Series     `json:"series"`
+		Skills      *[]models.Skill      `json:"skills"`
+		Skillsets   *[]models.Skillset   `json:"skillsets"`
+		Species     *[]models.Species    `json:"species"`
+		Staffs      *[]models.Staff      `json:"staffs"`
+		User        *models.User         `json:"user"`
+		UserActions *[]models.UserAction `json:"user_actions"`
+		UserSkills  *[]models.UserSkill  `json:"user_skills"`
 	}{
-		Actions:    actions,
-		Actionsets: actionsets,
-		Creatures:  creatures,
-		Series:     series,
-		Species:    species,
-		Staffs:     staffs,
-		User:       user,
+		Actions:     actions,
+		Actionsets:  actionsets,
+		Creatures:   creatures,
+		Series:      series,
+		Skills:      skills,
+		Skillsets:   skillsets,
+		Species:     species,
+		Staffs:      staffs,
+		User:        user,
+		UserActions: userActions,
+		UserSkills:  userSkills,
 	}
 
 	app.returnStruct(w, data)
