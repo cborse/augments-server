@@ -8,6 +8,7 @@ type Species struct {
 	Rarity       Rarity `db:"rarity" json:"rarity"`
 	Type1        Type   `db:"type1" json:"type1"`
 	Type2        Type   `db:"type2" json:"type2"`
+	Type3        Type   `db:"type3" json:"type3"`
 	Height       uint32 `db:"height" json:"height"`
 	Weight       uint32 `db:"weight" json:"weight"`
 	InnerPower   uint8  `db:"inner_power" json:"inner_power"`
