@@ -61,6 +61,30 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Select all actions
+	actions := &[]models.Action{}
+	err = app.db.Select(actions, "SELECT * FROM action ORDER BY id")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Select all actionsets
+	actionsets := &[]models.Actionset{}
+	err = app.db.Select(actionsets, "SELECT * FROM actionset")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Select all series
+	series := &[]models.Series{}
+	err = app.db.Select(series, "SELECT * FROM series ORDER BY id")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
 	// Select all species
 	species := &[]models.Species{}
 	err = app.db.Select(species, "SELECT * FROM species ORDER BY id")
@@ -87,15 +111,21 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 
 	// Return the struct
 	data := struct {
-		Creatures *[]models.Creature `json:"creatures"`
-		Species   *[]models.Species  `json:"species"`
-		Staffs    *[]models.Staff    `json:"staffs"`
-		User      *models.User       `json:"user"`
+		Actions    *[]models.Action    `json:"actions"`
+		Actionsets *[]models.Actionset `json:"actionsets"`
+		Creatures  *[]models.Creature  `json:"creatures"`
+		Series     *[]models.Series    `json:"series"`
+		Species    *[]models.Species   `json:"species"`
+		Staffs     *[]models.Staff     `json:"staffs"`
+		User       *models.User        `json:"user"`
 	}{
-		Creatures: creatures,
-		Species:   species,
-		Staffs:    staffs,
-		User:      user,
+		Actions:    actions,
+		Actionsets: actionsets,
+		Creatures:  creatures,
+		Series:     series,
+		Species:    species,
+		Staffs:     staffs,
+		User:       user,
 	}
 
 	app.returnStruct(w, data)
