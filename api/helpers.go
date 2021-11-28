@@ -147,5 +147,14 @@ func (app *application) createSteamUser(steamID uint64) error {
 		}
 	}
 
+	// Insert initial 28 actions
+	for i := 15; i <= 42; i++ {
+		_, err = tx.Exec("INSERT INTO user_action (user_id, action_id, qty) VALUES (?, ?, ?)", user.ID, i, 1)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit()
 }

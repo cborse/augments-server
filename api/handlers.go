@@ -127,7 +127,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 
 	// Get all user actions
 	userActions := &[]models.UserAction{}
-	err = app.db.Select(userActions, "SELECT * FROM user_action WHERE user_id = ?", user.ID)
+	err = app.db.Select(userActions, "SELECT * FROM user_action WHERE user_id = ? AND qty > 0", user.ID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -135,7 +135,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 
 	// Get all user skills
 	userSkills := &[]models.UserSkill{}
-	err = app.db.Select(userSkills, "SELECT * FROM user_skill WHERE user_id = ?", user.ID)
+	err = app.db.Select(userSkills, "SELECT * FROM user_skill WHERE user_id = ? AND qty > 0", user.ID)
 	if err != nil {
 		app.serverError(w, err)
 		return
