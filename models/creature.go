@@ -6,7 +6,7 @@ type Creature struct {
 	SpeciesID uint32 `db:"species_id" json:"species_id"`
 	StaffSlot int8   `db:"staff_slot" json:"staff_slot"`
 	Name      string `db:"name" json:"name"`
-	IsEgg     bool   `db:"is_egg" json:"is_egg"`
+	Egg       bool   `db:"egg" json:"egg"`
 	XP        uint32 `db:"xp" json:"xp"`
 	Wins      uint32 `db:"wins" json:"wins"`
 }
