@@ -156,5 +156,14 @@ func (app *application) createSteamUser(steamID uint64) error {
 		}
 	}
 
+	// Insert initial 32 skills
+	for i := 1; i <= 33; i++ {
+		_, err = tx.Exec("INSERT INTO user_skill (user_id, skill_id, qty) VALUES (?, ?, ?)", user.ID, i, 1)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
