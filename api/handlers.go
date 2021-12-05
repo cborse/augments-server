@@ -305,7 +305,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var storageCount uint
-	err = app.db.Get(&storageCount, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND is_egg = false", userID)
+	err = app.db.Get(&storageCount, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND egg = false", userID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -315,7 +315,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hatch it
-	_, err = app.db.Exec("UPDATE creature SET is_egg = false, wins = 0 WHERE id = ?", body.CreatureID)
+	_, err = app.db.Exec("UPDATE creature SET egg = false, wins = 0 WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
