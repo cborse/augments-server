@@ -39,7 +39,7 @@ func (app *application) auth(next http.Handler) http.Handler {
 		// Get the credentials
 		token, userID := getCredentials(r)
 		if len(token) < 1 || userID == 0 {
-			clientError(w, http.StatusUnauthorized)
+			app.clientError(w, http.StatusUnauthorized)
 			return
 		}
 
@@ -47,7 +47,7 @@ func (app *application) auth(next http.Handler) http.Handler {
 		user := &models.User{}
 		err := app.db.Get(user, "SELECT * FROM user WHERE id = ?", userID)
 		if err == sql.ErrNoRows {
-			clientError(w, http.StatusUnauthorized)
+			app.clientError(w, http.StatusUnauthorized)
 			return
 		} else if err != nil {
 			app.serverError(w, err)
@@ -55,7 +55,7 @@ func (app *application) auth(next http.Handler) http.Handler {
 		}
 
 		if user.Token != token {
-			clientError(w, http.StatusUnauthorized)
+			app.clientError(w, http.StatusUnauthorized)
 			return
 		}
 

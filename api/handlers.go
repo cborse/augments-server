@@ -25,7 +25,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if steamID != body.SteamID {
-		clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -195,7 +195,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure the user IDs match
 	if creature.UserID != userID {
-		clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -206,7 +206,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if count >= 8 {
-		clientError(w, http.StatusForbidden)
+		app.clientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -243,7 +243,7 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure the user IDs match
 	if creature.UserID != userID {
-		clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -280,7 +280,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure the user ID's match
 	if creature.UserID != userID {
-		clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -293,7 +293,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	} else if species.Rarity == 0 && creature.Wins < 2 ||
 		species.Rarity == 1 && creature.Wins < 4 ||
 		species.Rarity == 2 && creature.Wins < 8 {
-		clientError(w, http.StatusForbidden)
+		app.clientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -310,7 +310,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if storageCount >= uint(user.StoragePages*20) {
-		clientError(w, http.StatusForbidden)
+		app.clientError(w, http.StatusForbidden)
 		return
 	}
 
