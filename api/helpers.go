@@ -120,7 +120,7 @@ func (app *application) createSteamUser(steamID uint64) error {
 	}
 
 	// Insert initial staff
-	_, err = tx.Exec("INSERT INTO staff (user_id, slot, name) VALUES (?, ?, ?)", user.ID, 0, "STAFF 1")
+	_, err = tx.Exec("INSERT INTO staff (user_id, name) VALUES (?, ?)", user.ID, "STAFF 1")
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -139,8 +139,8 @@ func (app *application) createSteamUser(steamID uint64) error {
 
 		// Insert creatures
 		_, err := tx.Exec(
-			"INSERT INTO creature (user_id, species_id, name, egg, staff_slot, wins) VALUES (?, ?, ?, ?, ?, ?)",
-			user.ID, s.ID, s.Name, true, -1, neededWins)
+			"INSERT INTO creature (user_id, species_id, name, egg, staff_id, wins) VALUES (?, ?, ?, ?, ?, ?)",
+			user.ID, s.ID, s.Name, true, 0, neededWins)
 		if err != nil {
 			tx.Rollback()
 			return err

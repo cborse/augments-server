@@ -111,7 +111,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 
 	// Get the staffs
 	staffs := &[]models.Staff{}
-	err = app.db.Select(staffs, "SELECT * FROM staff WHERE user_id = ? ORDER BY slot", user.ID)
+	err = app.db.Select(staffs, "SELECT * FROM staff WHERE user_id = ? ORDER BY id", user.ID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -175,7 +175,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body
 	body := struct {
 		CreatureID uint64 `json:"creature_id"`
-		StaffSlot  int8   `json:"staff_slot"`
+		StaffID    uint64 `json:"staff_id"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
@@ -201,7 +201,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure there's enough room
 	count := 0
-	err = app.db.Get(&count, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND staff_slot = ?", userID, body.StaffSlot)
+	err = app.db.Get(&count, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND staff_id = ?", userID, body.StaffID)
 	if err != nil && err != sql.ErrNoRows {
 		app.serverError(w, err)
 		return
@@ -211,7 +211,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Assign the creature to the staff
-	_, err = app.db.Exec("UPDATE creature SET staff_slot = ? WHERE id = ?", body.StaffSlot, body.CreatureID)
+	_, err = app.db.Exec("UPDATE creature SET staff_id = ? WHERE id = ?", body.StaffID, body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -248,7 +248,7 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Unassign the creature from the staff
-	_, err = app.db.Exec("UPDATE creature SET staff_slot = -1 WHERE id = ?", body.CreatureID)
+	_, err = app.db.Exec("UPDATE creature SET staff_id = 0 WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
