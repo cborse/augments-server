@@ -363,11 +363,11 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 
 	// Set on creature
 	if body.Slot == 0 {
-		_, err = tx.Exec("UPDATE creature SET action1 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+		_, err = tx.Exec("UPDATE creature SET action1 = ? WHERE id = ?", body.ActionID, body.CreatureID)
 	} else if body.Slot == 1 {
-		_, err = tx.Exec("UPDATE creature SET action2 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+		_, err = tx.Exec("UPDATE creature SET action2 = ? WHERE id = ?", body.ActionID, body.CreatureID)
 	} else if body.Slot == 2 {
-		_, err = tx.Exec("UPDATE creature SET action3 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+		_, err = tx.Exec("UPDATE creature SET action3 = ? WHERE id = ?", body.ActionID, body.CreatureID)
 	} else {
 		tx.Rollback()
 		app.clientError(w, http.StatusBadRequest)

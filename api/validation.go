@@ -49,16 +49,15 @@ func (app *application) validateReplaceAction(userID uint64, creatureID uint64, 
 	}
 
 	// Core
-	if action.Core && species.Type1 != action.Type && species.Type2 != action.Type && species.Type3 != action.Type {
-		return false, nil
+	if action.Core && (species.Type1 == action.Type || species.Type2 == action.Type || species.Type3 == action.Type) {
+		return true, nil
 	}
 
 	// Actionset
 	inActionSet, err := models.Actionset_canLearn(app.db, species.ID, actionID, creature.SeriesID)
-	if !inActionSet {
-		return false, err
+	if inActionSet {
+		return true, nil
 	}
 
-	// OK
-	return true, nil
+	return false, err
 }
