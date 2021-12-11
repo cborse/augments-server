@@ -141,8 +141,8 @@ func (app *application) createSteamUser(steamID uint64) error {
 
 		// Insert creatures
 		_, err := tx.Exec(
-			"INSERT INTO creature (user_id, species_id, name, egg, staff_id, wins) VALUES (?, ?, ?, ?, ?, ?)",
-			user.ID, s.ID, s.Name, true, 0, neededWins)
+			"INSERT INTO creature (user_id, species_id, name, egg, staff_id, wins, action1, action2) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			user.ID, s.ID, s.Name, true, 0, neededWins, s.Type1, s.Type2)
 		if err != nil {
 			tx.Rollback()
 			return err

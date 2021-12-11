@@ -9,4 +9,10 @@ type Creature struct {
 	Egg       bool   `db:"egg" json:"egg"`
 	XP        uint32 `db:"xp" json:"xp"`
 	Wins      uint32 `db:"wins" json:"wins"`
+	Action1   uint32 `db:"action1" json:"action1"`
+	Action2   uint32 `db:"action2" json:"action2"`
+	Action3   uint32 `db:"action3" json:"action3"`
+	Skill1    uint32 `db:"skill1" json:"skill1"`
+	Skill2    uint32 `db:"skill2" json:"skill2"`
+	Skill3    uint32 `db:"skill3" json:"skill3"`
 }
