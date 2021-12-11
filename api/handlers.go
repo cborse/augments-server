@@ -186,8 +186,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature := &models.Creature{}
-	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
+	creature, err := models.Creature_findByID(app.db, body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -234,8 +233,7 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature := &models.Creature{}
-	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
+	creature, err := models.Creature_findByID(app.db, body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -271,8 +269,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature := &models.Creature{}
-	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
+	creature, err := models.Creature_findByID(app.db, body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -324,118 +321,64 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	// OK!
 }
 
-// func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
-// 	// Decode the request body
-// 	body := struct {
-// 		CreatureID uint64 `json:"creature_id"`
-// 		Slot       uint8  `json:"slot"`
-// 		ActionID   uint32 `json:"action_id"`
-// 	}{}
-// 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
+func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
+	// Decode the request body
+	body := struct {
+		CreatureID uint64 `json:"creature_id"`
+		ActionID   uint32 `json:"action_id"`
+		Slot       uint8  `json:"slot"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.serverError(w, err)
+		return
+	}
 
-// 	// Get the requester's user ID
-// 	_, userID := getCredentials(r)
+	// Get the requester's user ID
+	_, userID := getCredentials(r)
 
-// 	// Find the creature
-// 	creature := &models.Creature{}
-// 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-// 	if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
+	// Validate
+	valid, err := app.validateReplaceAction(userID, body.CreatureID, body.ActionID, body.Slot)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	} else if !valid {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
-// 	// Make sure the user ID's match
-// 	if creature.UserID != userID {
-// 		app.clientError(w, http.StatusUnauthorized)
-// 		return
-// 	}
+	// Start a transaction
+	tx, err := app.db.Beginx()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
 
-// 	// Make sure the user has this action in inventory
-// 	userAction := &models.UserAction{}
-// 	err = app.db.Get(userAction, "SELECT * FROM user_action WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
-// 	if err == sql.ErrNoRows || userAction.Qty == 0 {
-// 		app.clientError(w, http.StatusBadRequest)
-// 		return
-// 	} else if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
+	// Remove from inventory
+	_, err = tx.Exec("UPDATE user_action SET qty = qty - 1 WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
+	if err != nil {
+		tx.Rollback()
+		app.serverError(w, err)
+		return
+	}
 
-// 	// Make sure the creature doesn't already know this action
-// 	if creature.Action1 == body.ActionID || creature.Action2 == body.ActionID || creature.Action3 == body.ActionID {
-// 		app.clientError(w, http.StatusBadRequest)
-// 		return
-// 	}
+	// Set on creature
+	if body.Slot == 0 {
+		_, err = tx.Exec("UPDATE creature SET action1 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+	} else if body.Slot == 1 {
+		_, err = tx.Exec("UPDATE creature SET action2 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+	} else if body.Slot == 2 {
+		_, err = tx.Exec("UPDATE creature SET action3 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
+	} else {
+		tx.Rollback()
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		tx.Rollback()
+		app.serverError(w, err)
+		return
+	}
 
-// 	// Make sure the creature can learn this action
-// 	action := &models.Action{}
-// 	err = app.db.Get(action, "SELECT * FROM action WHERE id = ?", body.ActionID)
-// 	if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
-
-// 	// Core
-// 	species := &models.Species{}
-// 	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
-// 	if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
-// 	canLearnCore := species.CanLearnCoreAction(action)
-
-// 	// Set
-// 	actionSet := &models.Actionset{}
-// 	err = app.db.Get(actionSet, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ?", creature.SpeciesID, body.ActionID)
-// 	if err == sql.ErrNoRows {
-// 		app.clientError(w, http.StatusBadRequest)
-// 		return
-// 	} else if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
-
-// 	// Start a transaction
-// 	tx, err := app.db.Beginx()
-// 	if err != nil {
-// 		app.serverError(w, err)
-// 		return
-// 	}
-
-// 	// Remove from inventory
-// 	if userAction.Qty == 1 {
-// 		_, err = tx.Exec("DELETE FROM user_action WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
-// 	} else {
-// 		_, err = tx.Exec("UPDATE user_action SET qty = ? WHERE user_id = ? AND action_id = ?", userAction.Qty-1, userID, body.ActionID)
-
-// 	}
-// 	if err != nil {
-// 		tx.Rollback()
-// 		app.serverError(w, err)
-// 		return
-// 	}
-
-// 	// Set on creature
-// 	if body.Slot == 0 {
-// 		_, err = tx.Exec("UPDATE creature SET action1 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
-// 	} else if body.Slot == 1 {
-// 		_, err = tx.Exec("UPDATE creature SET action2 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
-// 	} else if body.Slot == 2 {
-// 		_, err = tx.Exec("UPDATE creature SET action3 = ? WHERE creature_id = ?", body.ActionID, body.CreatureID)
-// 	} else {
-// 		tx.Rollback()
-// 		app.clientError(w, http.StatusBadRequest)
-// 		return
-// 	}
-// 	if err != nil {
-// 		tx.Rollback()
-// 		app.serverError(w, err)
-// 		return
-// 	}
-
-// 	// Should be OK
-// 	tx.Commit()
-// }
+	// Should be OK
+	tx.Commit()
+}
