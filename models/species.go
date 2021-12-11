@@ -25,3 +25,7 @@ type Species struct {
 func (s *Species) GetRequiredEggWins() int {
 	return int(math.Pow(2, float64(s.Rarity)+1))
 }
+
+func (s *Species) CanLearnCoreAction(action *Action) bool {
+	return action.Type == s.Type1 || action.Type == s.Type2 || action.Type == s.Type3
+}
