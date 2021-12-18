@@ -445,3 +445,121 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 	// Should be OK
 	tx.Commit()
 }
+
+func (app *application) replaceSkill(w http.ResponseWriter, r *http.Request) {
+	// Decode the request body
+	body := struct {
+		CreatureID uint64 `json:"creature_id"`
+		SkillID    uint32 `json:"skill_id"`
+		Slot       uint8  `json:"slot"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Get the requester's user ID
+	_, userID := getCredentials(r)
+
+	// Valid slot
+	if body.Slot > 2 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// User ID
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if creature.UserID != userID {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	// In inventory and qty > 0
+	userSkill := &models.UserSkill{}
+	err = app.db.Get(userSkill, "SELECT * FROM user_skill WHERE user_id = ? AND skill_id = ?", userID, body.SkillID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	} else if userSkill.Qty == 0 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Not egg
+	if creature.Egg {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Creature doesn't already know this skill
+	if creature.Skill1 == body.SkillID || creature.Skill2 == body.SkillID || creature.Skill3 == body.SkillID {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Species can learn this skill
+	skill := &models.Skill{}
+	err = app.db.Get(skill, "SELECT * FROM skill WHERE id = ?", body.SkillID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	species := &models.Species{}
+	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Skillset
+	if !skill.Core {
+		skillset := &models.Skillset{}
+		err = app.db.Get(skillset, "SELECT * FROM skillset WHERE species_id = ? AND skill_id = ?", creature.SpeciesID, body.SkillID)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+	}
+
+	// Start a transaction
+	tx, err := app.db.Beginx()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Remove from inventory
+	_, err = tx.Exec("UPDATE user_skill SET qty = qty - 1 WHERE user_id = ? AND skill_id = ?", userID, body.SkillID)
+	if err != nil {
+		tx.Rollback()
+		app.serverError(w, err)
+		return
+	}
+
+	// Set on creature
+	if body.Slot == 0 {
+		_, err = tx.Exec("UPDATE creature SET skill1 = ? WHERE id = ?", body.SkillID, body.CreatureID)
+	} else if body.Slot == 1 {
+		_, err = tx.Exec("UPDATE creature SET skill2 = ? WHERE id = ?", body.SkillID, body.CreatureID)
+	} else if body.Slot == 2 {
+		_, err = tx.Exec("UPDATE creature SET skill3 = ? WHERE id = ?", body.SkillID, body.CreatureID)
+	} else {
+		tx.Rollback()
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		tx.Rollback()
+		app.serverError(w, err)
+		return
+	}
+
+	// Should be OK
+	tx.Commit()
+}
