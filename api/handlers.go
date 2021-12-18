@@ -339,13 +339,73 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 	// Get the requester's user ID
 	_, userID := getCredentials(r)
 
-	// Validate
-	valid, err := app.validateReplaceAction(userID, body.CreatureID, body.ActionID, body.Slot)
+	// Valid slot
+	if body.Slot > 2 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// User ID
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
-	} else if !valid {
+	}
+	if creature.UserID != userID {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	// In inventory and qty > 0
+	userAction := &models.UserAction{}
+	err = app.db.Get(userAction, "SELECT * FROM user_action WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	} else if userAction.Qty == 0 {
 		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Not egg
+	if creature.Egg {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Creature doesn't already know this action
+	if creature.Action1 == body.ActionID || creature.Action2 == body.ActionID || creature.Action3 == body.ActionID {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Species can learn this action
+	action := &models.Action{}
+	err = app.db.Get(action, "SELECT * FROM action WHERE id = ?", body.ActionID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	species := &models.Species{}
+	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Core
+	if action.Core && species.Type1 != action.Type && species.Type2 != action.Type && species.Type3 != action.Type {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Actionset
+	actionset := &models.Actionset{}
+	err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ? AND series_id = ?", creature.SpeciesID, body.ActionID, creature.SeriesID)
+	if err != nil {
+		app.serverError(w, err)
 		return
 	}
 
