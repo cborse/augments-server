@@ -20,9 +20,3 @@ type Action struct {
 	Desc2        string `db:"desc2" json:"desc2"`
 	Desc3        string `db:"desc3" json:"desc3"`
 }
-
-func Action_findByID(db database, id uint32) (*Action, error) {
-	action := &Action{}
-	err := db.Get(action, "SELECT * FROM action WHERE id = ?", id)
-	return action, err
-}

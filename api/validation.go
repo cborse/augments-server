@@ -2,6 +2,7 @@ package main
 
 import (
 	"augments/models"
+	"database/sql"
 )
 
 func (app *application) validateReplaceAction(userID uint64, creatureID uint64, actionID uint32, slot uint8) (bool, error) {
@@ -11,7 +12,8 @@ func (app *application) validateReplaceAction(userID uint64, creatureID uint64, 
 	}
 
 	// User ID
-	creature, err := models.Creature_findByID(app.db, creatureID)
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", creatureID)
 	if err != nil {
 		return false, err
 	}
@@ -20,7 +22,8 @@ func (app *application) validateReplaceAction(userID uint64, creatureID uint64, 
 	}
 
 	// In inventory and qty > 0
-	userAction, err := models.UserAction_find(app.db, userID, actionID)
+	userAction := &models.UserAction{}
+	err = app.db.Get(userAction, "SELECT * FROM user_action WHERE user_id = ? AND action_id = ?", userID, actionID)
 	if err != nil {
 		return false, err
 	} else if userAction.Qty == 0 {
@@ -38,12 +41,14 @@ func (app *application) validateReplaceAction(userID uint64, creatureID uint64, 
 	}
 
 	// Species can learn this action
-	action, err := models.Action_findByID(app.db, actionID)
+	action := &models.Action{}
+	err = app.db.Get(action, "SELECT * FROM action WHERE id = ?", actionID)
 	if err != nil {
 		return false, err
 	}
 
-	species, err := models.Species_findByID(app.db, creature.SpeciesID)
+	species := &models.Species{}
+	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
 	if err != nil {
 		return false, err
 	}
@@ -54,10 +59,13 @@ func (app *application) validateReplaceAction(userID uint64, creatureID uint64, 
 	}
 
 	// Actionset
-	inActionSet, err := models.Actionset_canLearn(app.db, species.ID, actionID, creature.SeriesID)
-	if inActionSet {
-		return true, nil
+	actionset := &models.Actionset{}
+	err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ? AND series_id = ?", creature.SpeciesID, actionID, creature.SeriesID)
+	if err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, err
 	}
 
-	return false, err
+	return true, nil
 }

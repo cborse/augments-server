@@ -186,7 +186,8 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature, err := models.Creature_findByID(app.db, body.CreatureID)
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -233,7 +234,8 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature, err := models.Creature_findByID(app.db, body.CreatureID)
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -269,7 +271,8 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	_, userID := getCredentials(r)
 
 	// Find the creature
-	creature, err := models.Creature_findByID(app.db, body.CreatureID)
+	creature := &models.Creature{}
+	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
 	if err != nil {
 		app.serverError(w, err)
 		return

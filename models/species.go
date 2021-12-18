@@ -25,9 +25,3 @@ type Species struct {
 func (s *Species) GetRequiredEggWins() int {
 	return int(math.Pow(2, float64(s.Rarity)+1))
 }
-
-func Species_findByID(db database, id uint32) (*Species, error) {
-	species := &Species{}
-	err := db.Get(species, "SELECT * FROM species WHERE id = ?", id)
-	return species, err
-}

@@ -17,9 +17,3 @@ type Creature struct {
 	Skill2    uint32 `db:"skill2" json:"skill2"`
 	Skill3    uint32 `db:"skill3" json:"skill3"`
 }
-
-func Creature_findByID(db database, id uint64) (*Creature, error) {
-	creature := &Creature{}
-	err := db.Get(creature, "SELECT * FROM creature WHERE id = ?", id)
-	return creature, err
-}
