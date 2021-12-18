@@ -397,16 +397,13 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 
 	// Core
 	if action.Core && species.Type1 != action.Type && species.Type2 != action.Type && species.Type3 != action.Type {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// Actionset
-	actionset := &models.Actionset{}
-	err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ? AND series_id = ?", creature.SpeciesID, body.ActionID, creature.SeriesID)
-	if err != nil {
-		app.serverError(w, err)
-		return
+		// Actionset
+		actionset := &models.Actionset{}
+		err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ? AND series_id = ?", creature.SpeciesID, body.ActionID, creature.SeriesID)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 	}
 
 	// Start a transaction
