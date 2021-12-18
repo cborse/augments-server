@@ -416,12 +416,21 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Remove from inventory
-	_, err = tx.Exec("UPDATE user_action SET qty = qty - 1 WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
-	if err != nil {
-		tx.Rollback()
-		app.serverError(w, err)
-		return
+	// Remove from inventory or decrement qty
+	if userAction.Qty <= 1 {
+		_, err = tx.Exec("DELETE FROM user_action WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
+		if err != nil {
+			tx.Rollback()
+			app.serverError(w, err)
+			return
+		}
+	} else {
+		_, err = tx.Exec("UPDATE user_action SET qty = qty - 1 WHERE user_id = ? AND action_id = ?", userID, body.ActionID)
+		if err != nil {
+			tx.Rollback()
+			app.serverError(w, err)
+			return
+		}
 	}
 
 	// Set on creature
@@ -534,12 +543,21 @@ func (app *application) replaceSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Remove from inventory
-	_, err = tx.Exec("UPDATE user_skill SET qty = qty - 1 WHERE user_id = ? AND skill_id = ?", userID, body.SkillID)
-	if err != nil {
-		tx.Rollback()
-		app.serverError(w, err)
-		return
+	// Remove from inventory or decrement qty
+	if userSkill.Qty <= 1 {
+		_, err = tx.Exec("DELETE FROM user_skill WHERE user_id = ? AND skill_id = ?", userID, body.SkillID)
+		if err != nil {
+			tx.Rollback()
+			app.serverError(w, err)
+			return
+		}
+	} else {
+		_, err = tx.Exec("UPDATE user_skill SET qty = qty - 1 WHERE user_id = ? AND skill_id = ?", userID, body.SkillID)
+		if err != nil {
+			tx.Rollback()
+			app.serverError(w, err)
+			return
+		}
 	}
 
 	// Set on creature
