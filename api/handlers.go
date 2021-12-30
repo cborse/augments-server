@@ -324,7 +324,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	// OK!
 }
 
-func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
+func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body
 	body := struct {
 		CreatureID uint64 `json:"creature_id"`
@@ -452,7 +452,7 @@ func (app *application) replaceAction(w http.ResponseWriter, r *http.Request) {
 	tx.Commit()
 }
 
-func (app *application) replaceSkill(w http.ResponseWriter, r *http.Request) {
+func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body
 	body := struct {
 		CreatureID uint64 `json:"creature_id"`

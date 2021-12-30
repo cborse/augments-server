@@ -18,8 +18,8 @@ func (app *application) routes() http.Handler {
 	mux.Post("/assign", auth.ThenFunc(app.assign))
 	mux.Post("/unassign", auth.ThenFunc(app.unassign))
 	mux.Post("/hatch_egg", auth.ThenFunc(app.hatchEgg))
-	mux.Post("/replace_action", auth.ThenFunc(app.replaceAction))
-	mux.Post("/replace_skill", auth.ThenFunc(app.replaceSkill))
+	mux.Post("/learn_action", auth.ThenFunc(app.learnAction))
+	mux.Post("/learn_skill", auth.ThenFunc(app.learnSkill))
 
 	return mw.Then(mux)
 }
