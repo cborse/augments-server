@@ -1,4 +1,4 @@
-module github.com/cborse/augments_server
+module augments
 
 go 1.17
 
