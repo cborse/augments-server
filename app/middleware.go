@@ -1,8 +1,6 @@
 package main
 
 import (
-	"augments/models"
-	"database/sql"
 	"fmt"
 	"net/http"
 )
@@ -44,12 +42,8 @@ func (app *application) auth(next http.Handler) http.Handler {
 		}
 
 		// Find the user
-		user := &models.User{}
-		err := app.db.Get(user, "SELECT * FROM user WHERE id = ?", userID)
-		if err == sql.ErrNoRows {
-			app.clientError(w, http.StatusUnauthorized)
-			return
-		} else if err != nil {
+		user, err := User_get(app.db, userID)
+		if err != nil {
 			app.serverError(w, err)
 			return
 		}

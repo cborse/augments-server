@@ -14,7 +14,7 @@ func (app *application) routes() http.Handler {
 	mux := pat.New()
 
 	mux.Post("/login", http.HandlerFunc(app.login))
-
+	mux.Get("/get_data", auth.ThenFunc(app.getData))
 	mux.Post("/assign", auth.ThenFunc(app.assign))
 	mux.Post("/unassign", auth.ThenFunc(app.unassign))
 	mux.Post("/hatch_egg", auth.ThenFunc(app.hatchEgg))
