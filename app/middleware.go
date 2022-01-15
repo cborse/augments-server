@@ -1,6 +1,7 @@
 package main
 
 import (
+	"augments/models"
 	"fmt"
 	"net/http"
 )
@@ -42,12 +43,12 @@ func (app *application) auth(next http.Handler) http.Handler {
 		}
 
 		// Find the user
-		user, err := User_get(app.db, userID)
+		user := &models.User{}
+		err := app.db.Get(user, "SELECT * FROM user WHERE id = ?", userID)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-
 		if user.Token != token {
 			app.clientError(w, http.StatusUnauthorized)
 			return
