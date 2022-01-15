@@ -1,9 +1,10 @@
 package main
 
 import (
-	"augments/models"
 	"fmt"
 	"net/http"
+
+	"augments/models"
 )
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {

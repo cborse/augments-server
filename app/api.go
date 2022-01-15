@@ -1,7 +1,6 @@
 package main
 
 import (
-	"augments/models"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
@@ -9,6 +8,8 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+
+	"augments/models"
 )
 
 func authenticateSteamTicket(ticket string) (uint64, error) {
