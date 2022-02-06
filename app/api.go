@@ -174,7 +174,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		ID:    user.ID,
 		Token: token,
 	}
-	app.returnStruct(w, response)
+	app.writeStruct(w, response)
 }
 
 func (app *application) getData(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +284,7 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		UserSkills:  userSkills,
 	}
 
-	app.returnStruct(w, data)
+	app.writeStruct(w, data)
 }
 
 func (app *application) assign(w http.ResponseWriter, r *http.Request) {

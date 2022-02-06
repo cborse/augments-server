@@ -20,7 +20,7 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-func (app *application) returnStruct(w http.ResponseWriter, v interface{}) {
+func (app *application) writeStruct(w http.ResponseWriter, v interface{}) {
 	resp, err := json.Marshal(v)
 	if err != nil {
 		app.serverError(w, err)
