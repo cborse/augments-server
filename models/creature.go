@@ -6,7 +6,6 @@ type Creature struct {
 	ID        uint64 `db:"id" json:"id"`
 	UserID    uint64 `db:"user_id" json:"user_id"`
 	SpeciesID uint32 `db:"species_id" json:"species_id"`
-	SeriesID  uint8  `db:"series_id" json:"series_id"`
 	StaffSlot int8   `db:"staff_slot" json:"staff_slot"`
 	Name      string `db:"name" json:"name"`
 	Egg       bool   `db:"egg" json:"egg"`

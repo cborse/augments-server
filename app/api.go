@@ -88,7 +88,7 @@ func (app *application) createSteamUser(steamID uint64) (*models.User, error) {
 	}
 	for _, s := range species {
 		_, err := tx.Exec(
-			"INSERT INTO creature (user_id, species_id, series_id, name, egg, staff_slot, wins, action1, action2) VALUES (?, ?, 1, ?, true, -1, 8, ?, ?)",
+			"INSERT INTO creature (user_id, species_id, name, egg, staff_slot, wins, action1, action2) VALUES (?, ?, ?, true, -1, 8, ?, ?)",
 			user.ID, s.ID, s.Name, s.Type1, s.Type2)
 		if err != nil {
 			tx.Rollback()
@@ -229,13 +229,6 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	series := &[]models.Series{}
-	err = app.db.Select(series, "SELECT * FROM series ORDER BY id")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
 	skills := &[]models.Skill{}
 	err = app.db.Select(skills, "SELECT * FROM skill ORDER BY id")
 	if err != nil {
@@ -262,7 +255,6 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		Actions     *[]models.Action     `json:"actions"`
 		Actionsets  *[]models.Actionset  `json:"actionsets"`
 		Creatures   *[]models.Creature   `json:"creatures"`
-		Series      *[]models.Series     `json:"series"`
 		Skills      *[]models.Skill      `json:"skills"`
 		Skillsets   *[]models.Skillset   `json:"skillsets"`
 		Species     *[]models.Species    `json:"species"`
@@ -274,7 +266,6 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		Actions:     actions,
 		Actionsets:  actionsets,
 		Creatures:   creatures,
-		Series:      series,
 		Skills:      skills,
 		Skillsets:   skillsets,
 		Species:     species,
@@ -484,7 +475,7 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 
 	if action.Core && species.Type1 != action.Type && species.Type2 != action.Type && species.Type3 != action.Type {
 		actionset := &models.Actionset{}
-		err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ? AND series_id = ?", creature.SpeciesID, body.ActionID, creature.SeriesID)
+		err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ?", creature.SpeciesID, body.ActionID)
 		if err != nil {
 			app.serverError(w, err)
 			return
