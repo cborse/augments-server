@@ -417,9 +417,9 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 	body := struct {
-		CreatureID uint64 `json:"creature_id"`
-		ActionID   uint32 `json:"action_id"`
-		Slot       uint8  `json:"slot"`
+		CreatureID uint64          `json:"creature_id"`
+		ActionID   models.ActionID `json:"action_id"`
+		Slot       uint8           `json:"slot"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
@@ -529,9 +529,9 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 	body := struct {
-		CreatureID uint64 `json:"creature_id"`
-		SkillID    uint32 `json:"skill_id"`
-		Slot       uint8  `json:"slot"`
+		CreatureID uint64         `json:"creature_id"`
+		SkillID    models.SkillID `json:"skill_id"`
+		Slot       uint8          `json:"slot"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)

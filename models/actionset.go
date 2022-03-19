@@ -1,6 +1,6 @@
 package models
 
 type Actionset struct {
-	SpeciesID uint32 `db:"species_id" json:"species_id"`
-	ActionID  uint32 `db:"action_id" json:"action_id"`
+	SpeciesID SpeciesID `db:"species_id" json:"species_id"`
+	ActionID  ActionID  `db:"action_id" json:"action_id"`
 }
