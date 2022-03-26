@@ -10,9 +10,10 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	db       *sqlx.DB
+	errorLog   *log.Logger
+	infoLog    *log.Logger
+	db         *sqlx.DB
+	matchMaker matchMaker
 }
 
 func main() {
@@ -30,6 +31,20 @@ func main() {
 		infoLog:  infoLog,
 		db:       db,
 	}
+
+	// test
+	level := 1
+	host := lobbyUser{id: 99, staffSlot: 1, canceled: false}
+	lobby := lobby{level: level, host: host}
+	app.matchMaker.lobbies = append(app.matchMaker.lobbies, lobby)
+
+	// app.matchManager.matches = make(map[uint64]match)
+
+	// app.matchFinder.addUnmatched(2, 2)
+	// app.matchFinder.addUnmatched(3, 3)
+	// app.matchFinder.addUnmatched(4, 4)
+	// app.matchFinder.addUnmatched(5, 5)
+	// app.matchFinder.addUnmatched(6, 6)
 
 	srv := &http.Server{
 		Addr:     ":8080",

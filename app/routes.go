@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/hatch_egg", auth.ThenFunc(app.hatchEgg))
 	mux.Post("/learn_action", auth.ThenFunc(app.learnAction))
 	mux.Post("/learn_skill", auth.ThenFunc(app.learnSkill))
+	mux.Post("/matchmake", auth.ThenFunc(app.matchmake))
 
 	return mw.Then(mux)
 }
