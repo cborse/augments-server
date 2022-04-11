@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"math"
+	"math/big"
 	"net/http"
 	"strconv"
 
@@ -78,18 +79,31 @@ func (app *application) createSteamUser(steamID uint64) (*models.User, error) {
 	}
 
 	// Create initial creatures
-	// - first, select 5 random species
-	// - second, create the creatures
-	species := []models.Species{}
-	err = tx.Select(&species, "SELECT * FROM species WHERE id != 0 ORDER BY RAND() LIMIT ?", 5)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	// - first, select 5 random species IDs
+	// - second, insert the creatures in the database
+	speciesIDs := []models.SpeciesID{}
+	for len(speciesIDs) < 5 {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(models.SPECIES_COUNT-2)))
+		if err != nil {
+			return nil, err
+		}
+		speciesID := models.SpeciesID(n.Uint64()) + 1
+		exists := false
+		for _, id := range speciesIDs {
+			if id == speciesID {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			speciesIDs = append(speciesIDs, speciesID)
+		}
 	}
-	for _, s := range species {
+	for _, speciesID := range speciesIDs {
+		species := models.GetSpecies(speciesID)
 		_, err := tx.Exec(
 			"INSERT INTO creature (user_id, species_id, name, egg, staff_slot, wins, action1, action2) VALUES (?, ?, ?, true, -1, 8, ?, ?)",
-			user.ID, s.ID, s.Name, s.Type1, s.Type2)
+			user.ID, speciesID, species.Name, species.Type1, species.Type2)
 		if err != nil {
 			tx.Rollback()
 			return nil, err
@@ -187,15 +201,15 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	creatures := &[]models.Creature{}
-	err = app.db.Select(creatures, "SELECT * FROM creature WHERE user_id = ? ORDER BY id", userID)
+	staffs := &[]models.Staff{}
+	err = app.db.Select(staffs, "SELECT * FROM staff WHERE user_id = ? ORDER BY slot", userID)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	staffs := &[]models.Staff{}
-	err = app.db.Select(staffs, "SELECT * FROM staff WHERE user_id = ? ORDER BY slot", userID)
+	creatures := &[]models.Creature{}
+	err = app.db.Select(creatures, "SELECT * FROM creature WHERE user_id = ? ORDER BY id", userID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -215,62 +229,17 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actions := &[]models.Action{}
-	err = app.db.Select(actions, "SELECT * FROM action ORDER BY id")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	actionsets := &[]models.Actionset{}
-	err = app.db.Select(actionsets, "SELECT * FROM actionset")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	skills := &[]models.Skill{}
-	err = app.db.Select(skills, "SELECT * FROM skill ORDER BY id")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	skillsets := &[]models.Skillset{}
-	err = app.db.Select(skillsets, "SELECT * FROM skillset")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	species := &[]models.Species{}
-	err = app.db.Select(species, "SELECT * FROM species ORDER BY id")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
 	// Return the struct
 	data := struct {
-		Actions     *[]models.Action     `json:"actions"`
-		Actionsets  *[]models.Actionset  `json:"actionsets"`
-		Creatures   *[]models.Creature   `json:"creatures"`
-		Skills      *[]models.Skill      `json:"skills"`
-		Skillsets   *[]models.Skillset   `json:"skillsets"`
-		Species     *[]models.Species    `json:"species"`
-		Staffs      *[]models.Staff      `json:"staffs"`
 		User        *models.User         `json:"user"`
+		Staffs      *[]models.Staff      `json:"staffs"`
+		Creatures   *[]models.Creature   `json:"creatures"`
 		UserActions *[]models.UserAction `json:"user_actions"`
 		UserSkills  *[]models.UserSkill  `json:"user_skills"`
 	}{
-		Actions:     actions,
-		Actionsets:  actionsets,
-		Creatures:   creatures,
-		Skills:      skills,
-		Skillsets:   skillsets,
-		Species:     species,
-		Staffs:      staffs,
 		User:        user,
+		Staffs:      staffs,
+		Creatures:   creatures,
 		UserActions: userActions,
 		UserSkills:  userSkills,
 	}
@@ -377,12 +346,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure it has the required wins
-	species := &models.Species{}
-	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
+	species := models.GetSpecies(creature.SpeciesID)
 	reqWins := uint32(math.Pow(2, float64(species.Rarity)+1))
 	if creature.Wins < reqWins {
 		app.clientError(w, http.StatusForbidden)
@@ -459,27 +423,9 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure creature can learn this action
-	species := &models.Species{}
-	err = app.db.Get(species, "SELECT * FROM species WHERE id = ?", creature.SpeciesID)
-	if err != nil {
-		app.serverError(w, err)
+	if !creature.CanLearnAction(body.ActionID) {
+		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	action := &models.Action{}
-	err = app.db.Get(action, "SELECT * FROM action WHERE id = ?", body.ActionID)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	if action.Core && species.Type1 != action.Type && species.Type2 != action.Type && species.Type3 != action.Type {
-		actionset := &models.Actionset{}
-		err = app.db.Get(actionset, "SELECT * FROM actionset WHERE species_id = ? AND action_id = ?", creature.SpeciesID, body.ActionID)
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
 	}
 
 	// Make sure the user owns this action
@@ -571,20 +517,9 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure creature can learn this skill
-	skill := &models.Skill{}
-	err = app.db.Get(skill, "SELECT * FROM skill WHERE id = ?", body.SkillID)
-	if err != nil {
-		app.serverError(w, err)
+	if !creature.CanLearnSkill(body.SkillID) {
+		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	if !skill.Core {
-		skillset := &models.Skillset{}
-		err = app.db.Get(skillset, "SELECT * FROM skillset WHERE species_id = ? AND skill_id = ?", creature.SpeciesID, body.SkillID)
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
 	}
 
 	// Make sure the user owns this skill

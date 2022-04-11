@@ -1,6 +1,13 @@
 package models
 
 type ActionID uint32
+type SkillID uint32
+type SpeciesID uint32
+type CoverID int
+type EffectID int
+type RarityID int
+type StyleID int
+type TypeID int
 
 const (
 	ACTION_NONE = ActionID(iota)
@@ -241,10 +248,8 @@ const (
 	ACTION_MIRAGE
 	ACTION_PEEK_A_BOO
 
-	ACTION_COUNT = ACTION_PEEK_A_BOO
+	ACTION_COUNT
 )
-
-type CoverID uint8
 
 const (
 	COVER_NONE = CoverID(iota)
@@ -265,21 +270,15 @@ const (
 	COVER_LINE5
 )
 
-type EffectID uint8
-
 const (
 	EFFECT_NONE = EffectID(iota)
 )
-
-type RarityID uint8
 
 const (
 	RARITY_COMMON = RarityID(iota)
 	RARITY_UNCOMMON
 	RARITY_RARE
 )
-
-type SkillID uint32
 
 const (
 	SKILL_NONE = SkillID(iota)
@@ -453,10 +452,8 @@ const (
 	SKILL_CORK
 	SKILL_CRACKEDSHELL
 
-	SKILL_COUNT = SKILL_CRACKEDSHELL
+	SKILL_COUNT
 )
-
-type SpeciesID uint32
 
 const (
 	SPECIES_NONE = SpeciesID(iota)
@@ -613,18 +610,14 @@ const (
 	SPECIES_CORKCUB
 	SPECIES_PSEUTLE
 
-	SPECIES_COUNT = SPECIES_PSEUTLE
+	SPECIES_COUNT
 )
-
-type StyleID uint8
 
 const (
 	STYLE_NONE = StyleID(iota)
 	STYLE_INNER
 	STYLE_OUTER
 )
-
-type TypeID uint8
 
 const (
 	TYPE_NONE = TypeID(iota)
@@ -636,7 +629,7 @@ const (
 	TYPE_METAL
 	TYPE_STONE
 	TYPE_SOLAR
-	TYPE_PYSCHE
+	TYPE_PSYCHE
 	TYPE_WIND
 	TYPE_ELECTRIC
 	TYPE_SPIRIT
