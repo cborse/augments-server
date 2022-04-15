@@ -39,6 +39,9 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 			app.serverError(w, err)
 			return
 		}
+	} else if err != nil {
+		app.serverError(w, err)
+		return
 	}
 
 	// Create a new access token
@@ -67,21 +70,30 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 
 	user := &models.User{}
 	err := app.db.Get(user, "SELECT * FROM user WHERE id = ?", userID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	staffs := &[]models.Staff{}
 	err = app.db.Select(staffs, "SELECT * FROM staff WHERE user_id = ? ORDER BY slot", userID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	creatures := &[]models.Creature{}
 	err = app.db.Select(creatures, "SELECT * FROM creature WHERE user_id = ? ORDER BY id", userID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -118,9 +130,13 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the creature
 	creature := &models.Creature{}
 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -132,14 +148,23 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Make sure there's room on the new staff
-	staffCount := 0
-	err = app.db.Get(&staffCount, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND staff_slot = ?", userID, body.StaffSlot)
+	// Make sure staff exists
+	tmp := 0
+	err = app.db.Get(&tmp, "SELECT COUNT(*) FROM staff WHERE user_id = ? AND slot = ?", userID, body.StaffSlot)
 	if err != nil {
 		app.serverError(w, err)
 		return
+	} else if tmp != 1 {
+		app.clientError(w)
+		return
 	}
-	if staffCount >= 8 {
+
+	// Make sure there's room on the new staff
+	err = app.db.Get(&tmp, "SELECT COUNT(*) FROM creature WHERE user_id = ? AND staff_slot = ?", userID, body.StaffSlot)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	} else if tmp >= 8 {
 		app.clientError(w)
 		return
 	}
@@ -159,9 +184,13 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the creature
 	creature := &models.Creature{}
 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -188,10 +217,20 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the creature
 	creature := &models.Creature{}
 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
+		return
+	}
+
+	// Make sure it's an egg
+	if !creature.Egg {
+		app.clientError(w)
 		return
 	}
 
@@ -249,22 +288,32 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Make sure it's a valid action
+	if body.ActionID <= models.ACTION_NONE || body.ActionID >= models.ACTION_COUNT {
+		app.clientError(w)
+		return
+	}
+
+	// Get the creature
 	creature := &models.Creature{}
 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
+		return
+	}
+
+	// Make sure it's not an egg
+	if creature.Egg {
+		app.clientError(w)
 		return
 	}
 
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w)
-		return
-	}
-
-	// Make sure creature is not an egg
-	if creature.Egg {
 		app.clientError(w)
 		return
 	}
@@ -339,22 +388,32 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Make sure it's a valid skill
+	if body.SkillID <= models.SKILL_NONE || body.SkillID >= models.SKILL_COUNT {
+		app.clientError(w)
+		return
+	}
+
+	// Get the creature
 	creature := &models.Creature{}
 	err := app.db.Get(creature, "SELECT * FROM creature WHERE id = ?", body.CreatureID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		app.clientError(w)
+		return
+	} else if err != nil {
 		app.serverError(w, err)
+		return
+	}
+
+	// Make sure it's not an egg
+	if creature.Egg {
+		app.clientError(w)
 		return
 	}
 
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w)
-		return
-	}
-
-	// Make sure creature is not an egg
-	if creature.Egg {
 		app.clientError(w)
 		return
 	}
