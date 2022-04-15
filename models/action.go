@@ -21,8 +21,8 @@ type Action struct {
 	Desc3        string
 }
 
-func GetAction(id ActionID) *Action {
-	return &gActions[id]
+func GetAction(id ActionID) Action {
+	return gActions[id]
 }
 
 var gActions = [...]Action{

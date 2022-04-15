@@ -22,8 +22,8 @@ type Species struct {
 	Skillset     []SkillID
 }
 
-func GetSpecies(id SpeciesID) *Species {
-	return &gSpecies[id]
+func GetSpecies(id SpeciesID) Species {
+	return gSpecies[id]
 }
 
 var gSpecies = [...]Species{

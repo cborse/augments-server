@@ -9,8 +9,8 @@ type Skill struct {
 	Desc3 string
 }
 
-func GetSkill(id SkillID) *Skill {
-	return &gSkills[id]
+func GetSkill(id SkillID) Skill {
+	return gSkills[id]
 }
 
 var gSkills = [...]Skill{
