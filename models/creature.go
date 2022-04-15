@@ -24,7 +24,7 @@ func (c *Creature) CanLearnAction(actionID ActionID) bool {
 		return true
 	}
 	for _, id := range species.Actionset {
-		if id == action.ID {
+		if id == actionID {
 			return true
 		}
 	}
@@ -38,7 +38,7 @@ func (c *Creature) CanLearnSkill(skillID SkillID) bool {
 	}
 	species := GetSpecies(c.SpeciesID)
 	for _, id := range species.Skillset {
-		if id == skill.ID {
+		if id == skillID {
 			return true
 		}
 	}
