@@ -13,10 +13,7 @@ import (
 )
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		SteamID     uint64 `json:"steam_id"`
-		SteamTicket string `json:"steam_ticket"`
-	}{}
+	body := LoginRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
@@ -61,13 +58,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the user ID and token
-	response := struct {
-		ID    uint64 `json:"id"`
-		Token string `json:"token"`
-	}{
-		ID:    user.ID,
-		Token: token,
-	}
+	response := LoginResponse{ID: user.ID, Token: token}
 	app.writeStruct(w, response)
 }
 
@@ -110,28 +101,18 @@ func (app *application) getData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the struct
-	data := struct {
-		User        *models.User         `json:"user"`
-		Staffs      *[]models.Staff      `json:"staffs"`
-		Creatures   *[]models.Creature   `json:"creatures"`
-		UserActions *[]models.UserAction `json:"user_actions"`
-		UserSkills  *[]models.UserSkill  `json:"user_skills"`
-	}{
+	data := GetDataResponse{
 		User:        user,
 		Staffs:      staffs,
 		Creatures:   creatures,
 		UserActions: userActions,
 		UserSkills:  userSkills,
 	}
-
 	app.writeStruct(w, data)
 }
 
 func (app *application) assign(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		CreatureID uint64 `json:"creature_id"`
-		StaffSlot  uint8  `json:"staff_slot"`
-	}{}
+	body := AssignRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
@@ -172,9 +153,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		CreatureID uint64 `json:"creature_id"`
-	}{}
+	body := UnassignRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
@@ -203,9 +182,7 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		CreatureID uint64 `json:"creature_id"`
-	}{}
+	body := HatchEggRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
@@ -260,11 +237,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		CreatureID uint64          `json:"creature_id"`
-		ActionID   models.ActionID `json:"action_id"`
-		Slot       uint8           `json:"slot"`
-	}{}
+	body := LearnActionRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
@@ -354,11 +327,7 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		CreatureID uint64         `json:"creature_id"`
-		SkillID    models.SkillID `json:"skill_id"`
-		Slot       uint8          `json:"slot"`
-	}{}
+	body := LearnSkillRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return
