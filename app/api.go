@@ -148,7 +148,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if steamID != body.SteamID {
-		app.clientError(w, http.StatusUnauthorized)
+		app.clientError(w)
 		return
 	}
 
@@ -267,7 +267,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 	// Make sure user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -279,7 +279,7 @@ func (app *application) assign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if staffCount >= 8 {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -310,7 +310,7 @@ func (app *application) unassign(w http.ResponseWriter, r *http.Request) {
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w, http.StatusUnauthorized)
+		app.clientError(w)
 		return
 	}
 
@@ -341,7 +341,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -349,7 +349,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 	species := models.GetSpecies(creature.SpeciesID)
 	reqWins := uint32(math.Pow(2, float64(species.Rarity)+1))
 	if creature.Wins < reqWins {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -367,7 +367,7 @@ func (app *application) hatchEgg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if storageCount >= int(user.StoragePages*20) {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -392,7 +392,7 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure it's a valid slot
 	if body.Slot > 2 {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -406,25 +406,25 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature is not an egg
 	if creature.Egg {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature doesn't already know this action
 	if creature.Action1 == body.ActionID || creature.Action2 == body.ActionID || creature.Action3 == body.ActionID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature can learn this action
 	if !creature.CanLearnAction(body.ActionID) {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w)
 		return
 	}
 
@@ -435,7 +435,7 @@ func (app *application) learnAction(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if err == sql.ErrNoRows || userAction.Qty == 0 {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -486,7 +486,7 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure it's a valid slot
 	if body.Slot > 2 {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
@@ -500,25 +500,25 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 	// Make sure the user IDs match
 	_, userID := getCredentials(r)
 	if creature.UserID != userID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature is not an egg
 	if creature.Egg {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature doesn't already know this skill
 	if creature.Skill1 == body.SkillID || creature.Skill2 == body.SkillID || creature.Skill3 == body.SkillID {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 
 	// Make sure creature can learn this skill
 	if !creature.CanLearnSkill(body.SkillID) {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w)
 		return
 	}
 
@@ -529,7 +529,7 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	} else if err == sql.ErrNoRows || userSkill.Qty == 0 {
-		app.clientError(w, http.StatusForbidden)
+		app.clientError(w)
 		return
 	}
 

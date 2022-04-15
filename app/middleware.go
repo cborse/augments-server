@@ -39,7 +39,7 @@ func (app *application) auth(next http.Handler) http.Handler {
 		// Get the credentials
 		token, userID := getCredentials(r)
 		if len(token) < 1 || userID == 0 {
-			app.clientError(w, http.StatusUnauthorized)
+			app.clientError(w)
 			return
 		}
 
@@ -51,7 +51,7 @@ func (app *application) auth(next http.Handler) http.Handler {
 			return
 		}
 		if user.Token != token {
-			app.clientError(w, http.StatusUnauthorized)
+			app.clientError(w)
 			return
 		}
 
