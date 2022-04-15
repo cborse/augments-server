@@ -3,11 +3,11 @@ package models
 type ActionID uint32
 type SkillID uint32
 type SpeciesID uint32
-type CoverID int
-type EffectID int
-type RarityID int
-type StyleID int
-type TypeID int
+type CoverID uint8
+type EffectID uint8
+type RarityID uint8
+type StyleID uint8
+type TypeID uint8
 
 const (
 	ACTION_NONE = ActionID(iota)
