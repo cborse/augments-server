@@ -20,7 +20,7 @@ type Creature struct {
 func (c *Creature) CanLearnAction(actionID ActionID) bool {
 	action := GetAction(actionID)
 	species := GetSpecies(c.SpeciesID)
-	if action.Core && (action.Type == species.Type1 || action.Type == species.Type2 || action.Type == species.Type3) {
+	if action.Core && (action.Type == species.Type1 || action.Type == species.Type2) {
 		return true
 	}
 	for _, id := range species.Actionset {
