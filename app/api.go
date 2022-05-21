@@ -476,9 +476,7 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) matchmake(w http.ResponseWriter, r *http.Request) {
-	body := struct {
-		StaffSlot uint8 `json:"staff_slot"`
-	}{}
+	body := MatchmakeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		app.serverError(w, err)
 		return

@@ -44,3 +44,7 @@ type LearnSkillRequest struct {
 	SkillID    models.SkillID `json:"skill_id"`
 	Slot       uint8          `json:"slot"`
 }
+
+type MatchmakeRequest struct {
+	StaffSlot uint8 `json:"staff_slot"`
+}
