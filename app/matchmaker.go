@@ -7,7 +7,7 @@ import (
 
 type lobbyUser struct {
 	id        uint64
-	level     int
+	level     uint32
 	staffSlot uint8
 }
 
@@ -22,7 +22,7 @@ type matchMaker struct {
 	lobbies []lobby
 }
 
-func (m *matchMaker) findOrCreateLobby(searcherID uint64, searcherLevel int, searcherStaffSlot uint8) *lobby {
+func (m *matchMaker) findOrCreateLobby(searcherID uint64, searcherLevel uint32, searcherStaffSlot uint8) *lobby {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
