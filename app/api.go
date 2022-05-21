@@ -495,9 +495,9 @@ func (app *application) matchmake(w http.ResponseWriter, r *http.Request) {
 
 	// Find a lobby
 	lobby := app.matchMaker.findOrCreateLobby(userID, highestLevel, body.StaffSlot)
+	found := app.matchMaker.waitForMatch(lobby)
 
-	// If the lobby was created (this user is host), wait for a match
-	if !lobby.ready {
-		app.matchMaker.waitForMatch(lobby)
+	if found {
+		return
 	}
 }
