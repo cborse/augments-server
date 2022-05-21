@@ -1,5 +1,7 @@
 package models
 
+import "math"
+
 type Creature struct {
 	ID        uint64    `db:"id" json:"id"`
 	UserID    uint64    `db:"user_id" json:"user_id"`
@@ -43,4 +45,18 @@ func (c *Creature) CanLearnSkill(skillID SkillID) bool {
 		}
 	}
 	return false
+}
+
+func (c *Creature) GetLevel() int {
+	for i := 2; i <= 144; i++ {
+		if c.XP < getXPAtLevel(i) {
+			return i - 1
+		}
+	}
+	return 144
+}
+
+func getXPAtLevel(level int) uint32 {
+	// total xp = floor(713/20736*A3^3+2*A3^2-A3)
+	return uint32(float64(713)/float64(20736)*math.Pow(float64(level), 3) + 2*math.Pow(float64(level), 2) - float64(level))
 }

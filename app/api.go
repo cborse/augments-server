@@ -474,3 +474,32 @@ func (app *application) learnSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *application) matchmake(w http.ResponseWriter, r *http.Request) {
+	body := struct {
+		StaffSlot uint8 `json:"staff_slot"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	_, userID := getCredentials(r)
+
+	// Find the highest level creature on this staff
+	creatures := []models.Creature{}
+	err := app.db.Select(&creatures, "SELECT * FROM creature WHERE user_id = ? AND staff_slot = ? ORDER BY xp DESC", userID, body.StaffSlot)
+	if err != nil || len(creatures) < 5 {
+		app.serverError(w, err)
+		return
+	}
+	highestLevel := creatures[0].GetLevel()
+
+	// Find a match
+	lobby := app.matchMaker.findOrCreateLobby(userID, highestLevel, body.StaffSlot)
+
+	// Wait for a match if needed
+	if !lobby.ready {
+		app.matchMaker.waitForMatch(lobby)
+	}
+}

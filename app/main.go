@@ -10,9 +10,10 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	db       *sqlx.DB
+	errorLog   *log.Logger
+	infoLog    *log.Logger
+	db         *sqlx.DB
+	matchMaker matchMaker
 }
 
 func main() {
